@@ -1,4 +1,5 @@
 # Python MEGA API Wrapper
+![mega_api_logo_2](https://github.com/edunavajas/Mega-Api/assets/45195340/94419472-2362-4e44-a515-0004d07d2b12)
 
 ## Overview
 
