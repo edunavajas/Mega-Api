@@ -20,6 +20,7 @@ jwt = JWTManager(app)
 
 app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER')
 
+
 @app.route('/login', methods=['POST'])
 def login():
     username = request.json.get('username', None)
@@ -34,10 +35,12 @@ def login():
 
     return jsonify(access_token=access_token)
 
+
 def update_file_mapping():
     files = m.get_files()
     global file_mapping
     file_mapping = {file_key: file_info for file_key, file_info in files.items()}
+
 
 def decrypt_attr(attr):
     # Asumiendo que 'attr' es una cadena codificada en base64
@@ -49,6 +52,7 @@ def decrypt_attr(attr):
         print("Error al decodificar:", e)
         return None
 
+
 @app.route('/')
 def home():
     return 'It works!!'
@@ -57,6 +61,8 @@ def home():
 @app.route('/upload', methods=['POST'])
 @jwt_required()
 def upload_to_mega():
+    print("FILES: ", request.files)
+    print("RQUEST: ", request)
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 
@@ -77,17 +83,13 @@ def upload_to_mega():
         if 'f' in upload_response and len(upload_response['f']) > 0:
             uploaded_file_key = upload_response['f'][0]['h']
         else:
-            # Opcional: Eliminar el archivo del sistema local después de la carga
             os.remove(filepath)
             return jsonify({'error': 'Error al subir el archivo'}), 500
 
-        # Opcional: Eliminar el archivo del sistema local después de la carga
         os.remove(filepath)
 
-        # Actualizar el mapeo de archivos
-        update_file_mapping()
-
         return jsonify({'success': 'File uploaded successfully', 'file_key': uploaded_file_key}), 200
+
 
 @app.route('/download/<file_key>', methods=['GET'])
 @jwt_required()
@@ -120,6 +122,7 @@ def download_file(file_key):
     else:
         return {'error': 'Archivo no encontrado'}, 404
 
+
 @app.route('/delete/<file_key>', methods=['DELETE'])
 @jwt_required()
 def delete_file(file_key):
@@ -142,6 +145,7 @@ def delete_file(file_key):
             return {'error': 'Error al eliminar el archivo', 'details': str(e)}, 500
     else:
         return {'error': 'Archivo no encontrado'}, 404
+
 
 @app.route('/list', methods=['GET'])
 @jwt_required()
@@ -169,6 +173,7 @@ def list_files():
 
     return {'files': file_list}
 
+
 @app.route('/details', methods=['GET'])
 @jwt_required()
 def details():
@@ -176,7 +181,8 @@ def details():
     quota = m.get_quota()
     space = m.get_storage_space(kilo=True)
 
-    return {'details ': details, 'quota':quota, 'space':space}
+    return {'details ': details, 'quota': quota, 'space': space}
+
 
 if __name__ == '__main__':
     app.run(debug=True)
