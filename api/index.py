@@ -53,6 +53,7 @@ def decrypt_attr(attr):
 def home():
     return 'It works!!'
 
+
 @app.route('/upload', methods=['POST'])
 @jwt_required()
 def upload_to_mega():
@@ -70,12 +71,23 @@ def upload_to_mega():
         file.save(filepath)
 
         # Subir archivo a MEGA
-        m.upload(filepath)
+        upload_response = m.upload(filepath)
+
+        # Obtener la file_key del archivo subido
+        if 'f' in upload_response and len(upload_response['f']) > 0:
+            uploaded_file_key = upload_response['f'][0]['h']
+        else:
+            # Opcional: Eliminar el archivo del sistema local después de la carga
+            os.remove(filepath)
+            return jsonify({'error': 'Error al subir el archivo'}), 500
 
         # Opcional: Eliminar el archivo del sistema local después de la carga
         os.remove(filepath)
 
-        return jsonify({'success': 'File uploaded successfully'}), 200
+        # Actualizar el mapeo de archivos
+        update_file_mapping()
+
+        return jsonify({'success': 'File uploaded successfully', 'file_key': uploaded_file_key}), 200
 
 @app.route('/download/<file_key>', methods=['GET'])
 @jwt_required()
